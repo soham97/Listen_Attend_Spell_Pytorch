@@ -1,5 +1,6 @@
 import numpy as np 
 from torch.utils.data import Dataset, DataLoader
+import torch
 
 class WSJ_Dataset(Dataset):
     def __init__(self, data_name = 'train'):
@@ -7,7 +8,8 @@ class WSJ_Dataset(Dataset):
         if self.data_name not in ['train', 'dev', 'test']:
             print('Provide string in [train, dev, test] only')
 
-        self.utterances, self.label_transcript = self.load_dataset(self.data_name)
+        utterances, self.label_transcript = self.load_dataset(self.data_name)
+        self.utterances = self.make_divisible(utterances)
         self.max_input_len = np.max([utt.shape[0] for utt in self.utterances])
         self.max_output_len = np.max([ls.shape[0] for ls in self.label_transcript])
     
@@ -28,6 +30,13 @@ class WSJ_Dataset(Dataset):
                 label_seqs[i] = np.array([word.decode('utf-8') for word in sentence])
         #The for loop above converts all the words in sentences from b'THE' to 'THE'
         return utterances, label_seqs
+    
+    def make_divisible(self, utterances):
+        for i, utterance in enumerate(utterances):
+            # Repeating last frame
+            while len(utterances[i]) % 8 != 0:
+                utterances[i] = np.concatenate((utterances[i], [utterance[-1]]), axis=0)
+        return utterances
 
     def collate(self, batch):
         """
@@ -153,3 +162,10 @@ if __name__ == "__main__":
     print('Testing starts here: ')
     # input should be args, but its not currently defined
     DataLoaderContainer = WSJ_DataLoader([])
+    for inputs in DataLoaderContainer.val_dataloader:
+        print('padded_utterances shape: ', inputs[0].shape)
+        print('sorted_utterances_lens shape: ', inputs[1].shape)
+        print('padded_label shape: ', inputs[2].shape)
+        print('sorted_label_lens: ', inputs[3].shape)
+        print('label_mask: ',inputs[4].shape)
+        break
