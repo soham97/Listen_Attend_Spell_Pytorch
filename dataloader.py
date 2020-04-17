@@ -21,11 +21,11 @@ class WSJ_Dataset(Dataset):
              self.label_transcript[index], len(self.label_transcript[index])
 
     def load_dataset(self, name):
-        utterances = np.load(f'data/{name}_new.npy', allow_pickle = True, encoding = 'latin1')
+        utterances = np.load(f'data/{name}_new.npy', allow_pickle = True, encoding = 'bytes')
         if name == 'test':
             label_seqs = np.array([['-'] for _ in range(len(utterances))])
         else:
-            label_seqs = np.load(f'data/{name}_transcripts.npy', allow_pickle = True)
+            label_seqs = np.load(f'data/{name}_transcripts.npy', allow_pickle = True, encoding = 'bytes')
             for i, sentence in enumerate(label_seqs):
                 label_seqs[i] = np.array([word.decode('utf-8') for word in sentence])
         #The for loop above converts all the words in sentences from b'THE' to 'THE'
