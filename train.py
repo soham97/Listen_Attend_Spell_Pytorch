@@ -31,7 +31,7 @@ def train(args, logging, cuda):
                 x = x.cuda()
                 y = y.cuda()
             optimizer.zero_grad()
-            y_pred = model(x, x_len, y, y_len, y_mask)
+            y_pred = model(x, x_len, y, y_len)
             # compute loss now: can also used masked_select here,
             # but instead going with nonzero(), just a random choice
             y_mask = y_mask[:, 1:].contiguous().view(-1).nonzero().squeeze()
