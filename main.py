@@ -47,7 +47,6 @@ if __name__ == '__main__':
     logging.info('logging started for model = {}'.format(args.model_path))
 
     if args.train == 1:
-        print('Training started .......')
         model = train(args, logging, cuda)
     elif args.train == 0:
         print('Inference started .......')
