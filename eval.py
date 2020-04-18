@@ -20,7 +20,7 @@ def eval(args, logging, cuda):
     if cuda:
         model = model.cuda()
     # start decoding
-    for name in ['val', 'test', 'train']:
+    for name in ['test']:
         decode(model, DataLoaderContainer, name, cuda)
         print('{} decoding complete!'.format(name))
 
@@ -47,19 +47,22 @@ def decode(model, DataLoaderContainer, name, cuda):
             if cuda:
                 x = x.cuda()
             output, raw_preds = model(x, x_len)
-            output = get_best_out(output, raw_preds)
+            output = get_best_out(output, raw_preds, cuda)
             pred = [DataLoaderContainer.index_to_char[idx] for idx in output]
             pred = ''.join(pred)
             file.write("{},{}\n".format(i, pred))
             i += 1
         file.close()
 
-def get_best_out(output, raw_preds):
+def get_best_out(output, raw_preds, cuda):
         criterian = torch.nn.CrossEntropyLoss()
         best_loss = np.inf
         best_out = None
         for i, each in enumerate(output):
-            loss = criterian(raw_preds[i], torch.from_numpy(np.array(each)).long().cuda()).data.cpu().numpy()
+            each = torch.from_numpy(np.array(each)).long()
+            if cuda:
+                each = each.cuda()
+            loss = criterian(raw_preds[i], each).data.cpu().numpy()
             if loss < best_loss:
                 best_loss = loss
                 best_out = each[:-1]
