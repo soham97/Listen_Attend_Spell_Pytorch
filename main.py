@@ -22,7 +22,7 @@ if __name__ == '__main__':
             -is_stochastic 1 -train 0 -models_dir models -logs_dir logs -model_path best.pth \
             -num_workers 64
     """
-    parser = argparse.ArgumentParser(description='Arguements for training and inference')
+    parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", dest="data_dir", type=str, default="")
     parser.add_argument("--hidden_dim", dest="hidden_dim", type=int, default=256)
     parser.add_argument("--embed_dim", dest="embed_dim", type=int, default=40)
