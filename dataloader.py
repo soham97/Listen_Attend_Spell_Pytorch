@@ -23,7 +23,7 @@ class WSJ_Dataset(Dataset):
     def load_dataset(self, name):
         utterances = np.load(f'data/{name}_new.npy', allow_pickle = True, encoding = 'bytes')
         if name == 'test':
-            label_seqs = np.array([['-'] for _ in range(len(utterances))])
+            label_seqs = np.array([['a'] for _ in range(len(utterances))])
         else:
             label_seqs = np.load(f'data/{name}_transcripts.npy', allow_pickle = True, encoding = 'bytes')
             for i, sentence in enumerate(label_seqs):
