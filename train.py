@@ -3,7 +3,7 @@ from model import LAS
 from dataloader import WSJ_DataLoader
 from tqdm import tqdm
 import os
-import nn
+import torch.nn as nn
 import torch
 
 def train(args, logging, cuda):
