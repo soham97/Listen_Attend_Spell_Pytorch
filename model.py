@@ -74,12 +74,13 @@ class CustomLSTMCell(nn.LSTMCell):
             return super(CustomLSTMCell, self).forward(h, (hx, cx))
 
 class Decoder(nn.Module):
-    def __init__(self, args, output_size):
+    def __init__(self, args, output_size, cuda):
         super(Decoder, self).__init__()
         self.hidden_size = args.hidden_dim #32
         self.embedding_dim = args.embed_dim #100
         self.is_stochastic = args.is_stochastic #True
         self.max_decoding_length = args.max_decoding_length #75
+        self.cuda = cuda
 
         # Embedding layer
         self.embed = nn.Embedding(num_embeddings=output_size, embedding_dim=self.hidden_size)
@@ -120,8 +121,7 @@ class Decoder(nn.Module):
         b = input_len.unsqueeze(1).float()
         mask = a < b
 
-        cuda = False # mask converted to a variable
-        if cuda: # here it should be args.cuda
+        if self.cuda: # here it should be args.cuda
             mask = torch.autograd.Variable(mask.unsqueeze(1).type(torch.FloatTensor)).cuda()
         else:
             mask = torch.autograd.Variable(mask.unsqueeze(1).type(torch.FloatTensor))
@@ -240,14 +240,14 @@ class Decoder(nn.Module):
         return output, raw_preds
 
 class LAS(nn.Module):
-    def __init__(self, args, output_size, max_seq_len):
+    def __init__(self, args, output_size, max_seq_len, cuda):
         super(LAS, self).__init__()
         self.hidden_size = args.hidden_dim #32
         self.embedding_dim = args.embed_dim #40
         self.max_seq_len = max_seq_len
         self.output_size = output_size
         self.encoder = Encoder(args)      #pBilstm
-        self.decoder = Decoder(args, output_size)
+        self.decoder = Decoder(args, output_size, cuda)
         self.apply(init_weights)
         print('Layers initialised')
 
@@ -272,13 +272,13 @@ if __name__ == "__main__":
     batch_size = 8
     embed_dim = 40
     seq_len_padded = 64
-
+    cuda = False
     keys, values = encoder(torch.rand(seq_len_padded,batch_size,embed_dim), 64*torch.ones(batch_size))
     print('Encoder check complete')
 
     decoder = Decoder([],32)
     outputs = decoder(keys, values, torch.ones(batch_size,seq_len_padded).long(), \
-        8*torch.ones(batch_size).int(), 8*torch.ones(batch_size))
+        8*torch.ones(batch_size).int(), 8*torch.ones(batch_size), cuda)
     print('Decoder train check complete')
 
     outputs, raw_preds = decoder.decode(torch.rand(8,1,32), torch.rand(8,1,32))
@@ -286,7 +286,7 @@ if __name__ == "__main__":
 
     # input here to the whole model is batch as first dim
     # However, the input to encoder is batch as second dim
-    las = LAS([], 32, 64)
+    las = LAS([], 32, 64, cuda)
     las(torch.rand(batch_size, seq_len_padded,embed_dim), 64*torch.ones(batch_size), \
         torch.ones(batch_size,seq_len_padded).long(), \
         8*torch.ones(batch_size).int())
