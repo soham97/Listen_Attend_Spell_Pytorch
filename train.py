@@ -2,6 +2,7 @@ import numpy as np
 from model import LAS
 from dataloader import WSJ_DataLoader
 from tqdm import tqdm
+import os
 
 def train(args, logging, cuda):
     DataLoaderContainer = WSJ_DataLoader(args, cuda)
@@ -9,6 +10,7 @@ def train(args, logging, cuda):
     vocab_len = len(DataLoaderContainer.index_to_char)
     max_input_len = DataLoaderContainer.max_input_len
     model = LAS(args, vocab_len, max_input_len)
+    model_path = os.path.join(args.model_dir, args.model_path)
     criterian = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wdecay)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 3, verbose = True)
@@ -62,7 +64,7 @@ def train(args, logging, cuda):
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            save_model(epoch, model, optimizer, scheduler, args.model_path)
+            save_model(epoch, model, optimizer, scheduler, model_path)
 
         logging.info('epoch: {}, train_loss: {:.3f}, val_loss: {:.3f}'.format(epoch, train_loss, val_loss))
     
