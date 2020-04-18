@@ -122,7 +122,7 @@ class WSJ_DataLoader:
             num_workers = args.num_workers, pin_memory = cuda,\
             collate_fn=self.val_dataset.collate, shuffle=False)
 
-        self.test_dataloader = DataLoader(self.test_dataset, batch_size=1,\
+        self.test_dataloader = DataLoader(self.test_dataset, batch_size=args.batch_size,\
                                 collate_fn=self.test_dataset.collate, shuffle=False)
 
 
