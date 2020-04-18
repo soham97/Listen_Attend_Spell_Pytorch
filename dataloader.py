@@ -101,7 +101,6 @@ class WSJ_DataLoader:
         # storing the int labels back into the dataset
         self.train_dataset.label_transcript = train_label
         self.val_dataset.label_transcript = val_label
-        print('works till here')
 
         # creating dataloader here for the same, this uses: 
         """
