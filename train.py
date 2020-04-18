@@ -81,13 +81,14 @@ def train(args, logging, cuda):
         val_loss = np.mean(val_loss_samples)
         train_dist = np.mean(train_dist)
         val_dist = np.mean(val_dist)
-        scheduler.step(val_loss)
+        scheduler.step(val_dist)
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             save_model(epoch, model, optimizer, scheduler, model_path)
 
-        logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), train_dist, val_loss, np.exp(val_loss), val_dist))
+        # logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), train_dist, val_loss, np.exp(val_loss), val_dist))
+        logging.info('epoch: {}, train_loss: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, train_dist, val_loss, val_dist))
     
     
     return model
