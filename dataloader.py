@@ -1,10 +1,13 @@
 import numpy as np 
 from torch.utils.data import Dataset, DataLoader
 import torch
+import argparse
+import os
 
 class WSJ_Dataset(Dataset):
-    def __init__(self, data_name = 'train'):
+    def __init__(self, data_name = 'train', args = None):
         self.data_name = data_name
+        self.args = args
         if self.data_name not in ['train', 'dev', 'test']:
             print('Provide string in [train, dev, test] only')
 
@@ -22,11 +25,11 @@ class WSJ_Dataset(Dataset):
              self.label_transcript[index], len(self.label_transcript[index])
 
     def load_dataset(self, name):
-        utterances = np.load(f'data/{name}_new.npy', allow_pickle = True, encoding = 'bytes')
+        utterances = np.load(os.path.join(args.data_dir,f'{name}_new.npy'), allow_pickle = True, encoding = 'bytes')
         if name == 'test':
             label_seqs = np.array([['A'] for _ in range(len(utterances))])
         else:
-            label_seqs = np.load(f'data/{name}_transcripts.npy', allow_pickle = True, encoding = 'bytes')
+            label_seqs = np.load(os.path.join(args.data_dir,f'{name}_transcripts.npy'), allow_pickle = True, encoding = 'bytes')
             for i, sentence in enumerate(label_seqs):
                 label_seqs[i] = np.array([word.decode('utf-8') for word in sentence])
         #The for loop above converts all the words in sentences from b'THE' to 'THE'
@@ -87,9 +90,9 @@ class WSJ_Dataset(Dataset):
 
 class WSJ_DataLoader:
     def __init__(self, args, cuda):
-        self.train_dataset = WSJ_Dataset('train')
-        self.val_dataset = WSJ_Dataset('dev')
-        self.test_dataset = WSJ_Dataset('test')
+        self.train_dataset = WSJ_Dataset('train', args)
+        self.val_dataset = WSJ_Dataset('dev', args)
+        self.test_dataset = WSJ_Dataset('test', args)
 
         self.max_input_len = np.max([self.train_dataset.max_input_len] + \
                             [self.val_dataset.max_input_len] + \
@@ -129,11 +132,12 @@ class WSJ_DataLoader:
     def create_vocab_char(self):
         index_to_char = []
         char_to_index = {}
-        for i,c in enumerate(['<s>','<e>']):
+        for i,c in enumerate(['<s>','<e>', ' ']):
             index_to_char.append(c)
             char_to_index[c] = i
         # index 0 and 1 will be used start and end character
-        i = 2
+        # index 2 is now assigned for space character ' '
+        i = 3
         for sentence in self.train_dataset.label_transcript:
             for word in sentence:
                 for c in word:
@@ -158,6 +162,7 @@ class WSJ_DataLoader:
             for word in sentence:
                 for c in word:
                     int_sentence.append(self.char_to_index[c])
+                int_sentence.append(2) # adding space char after every word 
             int_sentence.append(1) # end character int
             int_transcript.append(int_sentence)
             
@@ -166,8 +171,16 @@ class WSJ_DataLoader:
 if __name__ == "__main__":
     print('Testing starts here: ')
     # input should be args, but its not currently defined
-    cuda = False
-    args = []
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-data_dir", "--data_dir", type=str, default="")
+    parser.add_argument("-batch_size", "--batch_size", type=int, default=32)
+    parser.add_argument("-train", "--train", type=int, default=1)
+    parser.add_argument("-models_dir", "--model_dir", type=str, default='models')
+    parser.add_argument("-logs_dir", "--logs_dir", type=str, default='logs')
+    parser.add_argument("-num_workers", "--num_workers", type=int, default=64)
+    args = parser.parse_args()
+
+    cuda = torch.cuda.is_available()
     DataLoaderContainer = WSJ_DataLoader(args, cuda)
     for inputs in DataLoaderContainer.val_dataloader:
         print('padded_utterances shape: ', inputs[0].shape)
