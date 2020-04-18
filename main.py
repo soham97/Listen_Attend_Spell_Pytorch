@@ -44,7 +44,7 @@ if __name__ == '__main__':
         create_folder(args.model_dir) 
     cuda = torch.cuda.is_available()
     create_logging(args.logs_dir, filemode = 'w')   
-    logging.info('logging started for model = {}'.format(args.model_file_name))
+    logging.info('logging started for model = {}'.format(args.model_path))
 
     if args.train == 1:
         print('Training started .......')
