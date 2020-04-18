@@ -80,7 +80,7 @@ class WSJ_Dataset(Dataset):
                 torch.from_numpy(label_mask).long()
 
 class WSJ_DataLoader:
-    def __init__(self, args):
+    def __init__(self, args, cuda):
         self.train_dataset = WSJ_Dataset('train')
         self.val_dataset = WSJ_Dataset('dev')
         self.test_dataset = WSJ_Dataset('test')
@@ -106,15 +106,15 @@ class WSJ_DataLoader:
         # creating dataloader here for the same, this uses: 
         """
         batch_size = args.batch_size
-        pin_memory = args.cuda
+        pin_memory = cuda
         num_workers = args.num_worker
         """
-        self.train_dataloader = DataLoader(self.train_dataset, batch_size=24, \
-            num_workers = 0, pin_memory = False,\
+        self.train_dataloader = DataLoader(self.train_dataset, batch_size=args.batch_size, \
+            num_workers = args.num_workers, pin_memory = cuda,\
             collate_fn=self.train_dataset.collate, shuffle=True)
 
-        self.val_dataloader = DataLoader(self.val_dataset, batch_size=24,\
-            num_workers = 0, pin_memory = False,\
+        self.val_dataloader = DataLoader(self.val_dataset, batch_size=args.batch_size,\
+            num_workers = args.num_workers, pin_memory = cuda,\
             collate_fn=self.val_dataset.collate, shuffle=False)
 
         self.test_dataloader = DataLoader(self.test_dataset, batch_size=1,\
@@ -161,7 +161,9 @@ class WSJ_DataLoader:
 if __name__ == "__main__":
     print('Testing starts here: ')
     # input should be args, but its not currently defined
-    DataLoaderContainer = WSJ_DataLoader([])
+    cuda = False
+    args = []
+    DataLoaderContainer = WSJ_DataLoader(args, cuda)
     for inputs in DataLoaderContainer.val_dataloader:
         print('padded_utterances shape: ', inputs[0].shape)
         print('sorted_utterances_lens shape: ', inputs[1].shape)
@@ -169,3 +171,11 @@ if __name__ == "__main__":
         print('sorted_label_lens: ', inputs[3].shape)
         print('label_mask: ',inputs[4].shape)
         break
+
+    """
+    padded_utterances shape:  torch.Size([8, 528, 40])
+    sorted_utterances_lens shape:  torch.Size([8])
+    padded_label shape:  torch.Size([8, 74])
+    sorted_label_lens:  torch.Size([8])
+    label_mask:  torch.Size([8, 74])
+    """

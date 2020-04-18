@@ -1,6 +1,20 @@
 import torch
 import torch.nn as nn
 
+def save_model(epoch, model, optimizer, scheduler, path_model = 'best.pth'):
+    checkpoint = { 
+        'epoch': epoch,
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'scheduler': scheduler.state_dict()}
+    torch.save(checkpoint, path_model)
+
+def load_model(path_model, cuda):
+    if cuda:
+        return torch.load(path_model)
+    else:
+        return torch.load(path_model, map_location=torch.device('cpu'))
+
 def to_variable(tensor, requires_grad=False):
     # Tensor -> Variable (on GPU if possible)
     if torch.cuda.is_available():
@@ -19,3 +33,34 @@ def init_weights(module):
                 nn.init.orthogonal_(param.data)
             elif 'bias' in name:
                 nn.init.normal_(param.data)
+
+def create_folder(fd):
+    if not os.path.exists(fd):
+        # creates problems when multiple scripts creating folders
+        try:
+            os.makedirs(fd)
+        except:
+            print('Folder already exits')
+    
+def create_logging(log_dir, filemode):
+    create_folder(log_dir)
+    i1 = 0
+    
+    while os.path.isfile(os.path.join(log_dir, '%04d.log' % i1)):
+        i1 += 1
+        
+    log_path = os.path.join(log_dir, '%04d.log' % i1)
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                        datefmt='%a, %d %b %Y %H:%M:%S',
+                        filename=log_path,
+                        filemode=filemode)
+                
+    # Print to console   
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+    
+    return logging

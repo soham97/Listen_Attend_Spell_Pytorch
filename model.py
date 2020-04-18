@@ -20,8 +20,8 @@ class Encoder(nn.Module):
         Donot need the sequential nature of nn.Sequential, hence
         using nn.Module
         """
-        hidden_size = 32
-        embedding_dim = 40
+        hidden_size = args.hidden_dim #32
+        embedding_dim = args.embed_dim #40
         self.lstm_layers = nn.ModuleList([
             nn.LSTM(input_size=embedding_dim, hidden_size=hidden_size, bidirectional=True),
             nn.LSTM(input_size=hidden_size, hidden_size=hidden_size, bidirectional=True),
@@ -76,9 +76,9 @@ class CustomLSTMCell(nn.LSTMCell):
 class Decoder(nn.Module):
     def __init__(self, args, output_size):
         super(Decoder, self).__init__()
-        self.vocab = 32 #args.vocab_size
-        self.hidden_size = 32 #args.hidden_dimension
-        self.embedding_dim = 100 #args.embedding_dimension
+        self.vocab = args.vocab_size #32
+        self.hidden_size = args.hidden_dimension #32
+        self.embedding_dim = args.embedding_dimension #100
         self.is_stochastic = True #args.is_stochastic
         self.max_decoding_length = 75 #args.max_decoding_length
 
