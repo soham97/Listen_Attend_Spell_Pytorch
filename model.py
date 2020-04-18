@@ -175,12 +175,12 @@ class Decoder(nn.Module):
         U = out.resize_(shape).uniform_() if out is not None else torch.rand(shape)
         return - torch.log(eps - torch.log(U + eps))
 
-    def decode(self, keys, values):
+    def decode(self, keys, values, args):
         """
         Input: keys, values
         return: Best decoded sequence
         """
-        bs = 1  # batch_size for decoding
+        # here the batch should be 1 for decoding
         output = []
         raw_preds = []
 
@@ -194,7 +194,7 @@ class Decoder(nn.Module):
             attn = F.softmax(energy, dim=2)
             context = torch.bmm(attn, values.permute(1, 0, 2)).squeeze(1)
             
-            h = self.embed(to_variable(torch.zeros(bs).long()))  # Start token provided for generating the sentence
+            h = self.embed(to_variable(torch.zeros(args.batch_size).long()))  # Start token provided for generating the sentence
             for i in range(self.max_decoding_length):
                 h = torch.cat((h, context), dim=1)
                 for j, lstm in enumerate(self.lstm_cells):
@@ -248,6 +248,7 @@ class LAS(nn.Module):
         self.output_size = output_size
         self.encoder = Encoder(args)      #pBilstm
         self.decoder = Decoder(args, output_size, cuda)
+        self.args = args
         self.apply(init_weights)
         print('Layers initialised')
 
@@ -256,7 +257,7 @@ class LAS(nn.Module):
         keys, values = self.encoder(input, input_len)
         if label is None:
             # During decoding of test data
-            return self.decoder.decode(keys, values)
+            return self.decoder.decode(keys, values, self.args)
         else:
             # During training
             return self.decoder(keys, values, label, label_len, input_len)

@@ -57,7 +57,7 @@ def get_best_out(output, raw_preds):
         best_loss = np.inf
         best_out = None
         for i, each in enumerate(output):
-            loss = criterian(raw_preds[i], to_variable(torch.from_numpy(np.array(each)).long())).data.cpu().numpy()[0]
+            loss = criterian(raw_preds[i], torch.from_numpy(np.array(each)).long()).data.cpu().numpy()
             if loss < best_loss:
                 best_loss = loss
                 best_out = each[:-1]

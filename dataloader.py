@@ -12,6 +12,7 @@ class WSJ_Dataset(Dataset):
         self.utterances = self.make_divisible(utterances)
         self.max_input_len = np.max([utt.shape[0] for utt in self.utterances])
         self.max_output_len = np.max([ls.shape[0] for ls in self.label_transcript])
+        self.is_test = True if self.data_name == 'test' else False
     
     def __len__(self):
         return len(self.utterances)
@@ -66,6 +67,11 @@ class WSJ_Dataset(Dataset):
         for utterance in utterances:
             padded_utterances[i, :len(utterance), :] = utterance
             i += 1
+
+        if self.is_test:
+            return torch.from_numpy(padded_utterances).float(), \
+                torch.from_numpy(sorted_utterances_lens).int(),\
+                None, None, None
 
         i = 0
         for label in sorted_labels:
