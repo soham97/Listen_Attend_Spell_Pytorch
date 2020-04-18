@@ -76,11 +76,10 @@ class CustomLSTMCell(nn.LSTMCell):
 class Decoder(nn.Module):
     def __init__(self, args, output_size):
         super(Decoder, self).__init__()
-        self.vocab = args.vocab_size #32
-        self.hidden_size = args.hidden_dimension #32
-        self.embedding_dim = args.embedding_dimension #100
-        self.is_stochastic = True #args.is_stochastic
-        self.max_decoding_length = 75 #args.max_decoding_length
+        self.hidden_size = args.hidden_dim #32
+        self.embedding_dim = args.embed_dim #100
+        self.is_stochastic = args.is_stochastic #True
+        self.max_decoding_length = args.max_decoding_length #75
 
         # Embedding layer
         self.embed = nn.Embedding(num_embeddings=output_size, embedding_dim=self.hidden_size)
@@ -243,8 +242,8 @@ class Decoder(nn.Module):
 class LAS(nn.Module):
     def __init__(self, args, output_size, max_seq_len):
         super(LAS, self).__init__()
-        self.hidden_size = 32
-        self.embedding_dim = 40
+        self.hidden_size = args.hidden_dim #32
+        self.embedding_dim = args.embed_dim #40
         self.max_seq_len = max_seq_len
         self.output_size = output_size
         self.encoder = Encoder(args)      #pBilstm
