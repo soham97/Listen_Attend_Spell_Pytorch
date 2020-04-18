@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import os
 
 def save_model(epoch, model, optimizer, scheduler, path_model = 'best.pth'):
     checkpoint = { 
