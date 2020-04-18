@@ -22,11 +22,11 @@ def train(args, logging, cuda):
 
     print('Training started .......')
     best_val_loss = np.inf
-    for epoch in tqdm(range(args.epochs)):
+    for epoch in range(args.epochs):
         train_loss_samples = []
         val_loss_samples = []
         model.train()
-        for (x, x_len, y, y_len, y_mask) in DataLoaderContainer.train_dataloader:
+        for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.train_dataloader):
             if cuda:
                 x = x.cuda()
                 y = y.cuda()
@@ -50,7 +50,7 @@ def train(args, logging, cuda):
             train_loss_samples.append(loss.data.cpu().numpy())
         
         model.eval()
-        for (x, x_len, y, y_len, y_mask) in DataLoaderContainer.val_dataloader:
+        for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.val_dataloader):
             if cuda:
                 x = x.cuda()
                 y = y.cuda()
