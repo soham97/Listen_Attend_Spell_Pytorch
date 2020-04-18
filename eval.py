@@ -24,7 +24,7 @@ def eval(args, logging, cuda):
 
 def get_dataloader(DataLoaderContainer, name):
     if name == 'test':
-        return DataLoaderContainer
+        return DataLoaderContainer.test_dataloader
     elif name == 'val':
         return DataLoaderContainer.val_dataloader
     elif name == 'train':
