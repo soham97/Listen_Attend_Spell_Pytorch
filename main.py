@@ -7,6 +7,7 @@ from dataloader import *
 import argparse
 import logging
 from train import train
+from inference import inference
 
 if __name__ == '__main__':
     """
@@ -50,6 +51,7 @@ if __name__ == '__main__':
         model = train(args, logging, cuda)
     elif args.train == 0:
         print('Inference started .......')
+        inference(args, logging, cuda)
         # TODO Inference pipeline and prediction saving
 
 
