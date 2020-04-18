@@ -6,6 +6,13 @@ import os
 import torch.nn as nn
 import torch
 from utils import *
+from Levenshtein import distance as levenshtein_distance
+
+def get_distance(DataLoaderContainer, y_pred, y):
+    y_greedy = torch.max(y_pred, dim=1)[1]
+    y_pred_char = ''.join([DataLoaderContainer.index_to_char[idx] for idx in y_greedy.detach().cpu()])
+    y_true_char = ''.join([DataLoaderContainer.index_to_char[idx] for idx in y.detach().cpu()])
+    return levenshtein_distance(y_pred_char, y_true_char)
 
 def train(args, logging, cuda):
     DataLoaderContainer = WSJ_DataLoader(args, cuda)
@@ -16,7 +23,7 @@ def train(args, logging, cuda):
     if cuda:
         model = model.cuda()
     model_path = os.path.join(args.model_dir, args.model_path)
-    criterian = nn.CrossEntropyLoss()
+    criterian = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.w_decay)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 3, verbose = True)
     print('Data loading compelete .......')
@@ -26,6 +33,8 @@ def train(args, logging, cuda):
     for epoch in range(args.epochs):
         train_loss_samples = []
         val_loss_samples = []
+        train_dist = []
+        val_dist = []
         model.train()
         for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.train_dataloader):
             if cuda:
@@ -41,9 +50,11 @@ def train(args, logging, cuda):
                 dim = 0, index = y_mask)
             y = torch.index_select(y[:, 1:].contiguous().view(-1), dim=0, index=y_mask)
 
-            loss = criterian(y_pred, y)
+            loss = criterian(y_pred, y) # no batch_size so using sum, then / by bs
+            loss = loss/args.batch_size
             loss.backward()
             optimizer.step()
+            train_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
 
             if args.clip_value > 0:
                 # Clip gradients
@@ -62,17 +73,21 @@ def train(args, logging, cuda):
                 dim = 0, index = y_mask)
             y = torch.index_select(y[:, 1:].contiguous().view(-1), dim=0, index=y_mask)
             loss = criterian(y_pred, y)
+            loss = loss/args.batch_size
+            val_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
             val_loss_samples.append(loss.data.cpu().numpy())
         
         train_loss = np.mean(train_loss_samples)
         val_loss = np.mean(val_loss_samples)
+        train_dist = np.mean(train_dist)
+        val_dist = np.mean(val_dist)
         scheduler.step(val_loss)
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             save_model(epoch, model, optimizer, scheduler, model_path)
 
-        logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), val_loss, np.exp(val_loss)))
+        logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), train_dist, val_loss, np.exp(val_loss), val_dist))
     
     
     return model
