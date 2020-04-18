@@ -18,7 +18,7 @@ def eval(args, logging, cuda):
     checkpoint = load_model(model_path, cuda)
     model.load_state_dict(checkpoint['model'])
     # start decoding
-    for name in ['test', 'val', 'train']:
+    for name in ['val', 'test', 'train']:
         decode(model, DataLoaderContainer, name, cuda)
         print('{} decoding complete!'.format(name))
 
