@@ -25,11 +25,11 @@ class WSJ_Dataset(Dataset):
              self.label_transcript[index], len(self.label_transcript[index])
 
     def load_dataset(self, name):
-        utterances = np.load(os.path.join(args.data_dir,f'{name}_new.npy'), allow_pickle = True, encoding = 'bytes')
+        utterances = np.load(os.path.join(self.args.data_dir,f'{name}_new.npy'), allow_pickle = True, encoding = 'bytes')
         if name == 'test':
             label_seqs = np.array([['A'] for _ in range(len(utterances))])
         else:
-            label_seqs = np.load(os.path.join(args.data_dir,f'{name}_transcripts.npy'), allow_pickle = True, encoding = 'bytes')
+            label_seqs = np.load(os.path.join(self.args.data_dir,f'{name}_transcripts.npy'), allow_pickle = True, encoding = 'bytes')
             for i, sentence in enumerate(label_seqs):
                 label_seqs[i] = np.array([word.decode('utf-8') for word in sentence])
         #The for loop above converts all the words in sentences from b'THE' to 'THE'
