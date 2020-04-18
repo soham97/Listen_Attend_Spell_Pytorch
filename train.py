@@ -26,7 +26,7 @@ def train(args, logging, cuda):
         train_loss_samples = []
         val_loss_samples = []
         model.train()
-        for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.train_dataloader):
+        for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.val_dataloader):
             if cuda:
                 x = x.cuda()
                 y = y.cuda()
