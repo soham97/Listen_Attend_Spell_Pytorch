@@ -17,6 +17,8 @@ def eval(args, logging, cuda):
     model = LAS(args, vocab_len, max_input_len, cuda)
     checkpoint = load_model(model_path, cuda)
     model.load_state_dict(checkpoint['model'])
+    if cuda:
+        model = model.cuda()
     # start decoding
     for name in ['val', 'test', 'train']:
         decode(model, DataLoaderContainer, name, cuda)
