@@ -30,6 +30,7 @@ def train(args, logging, cuda):
             if cuda:
                 x = x.cuda()
                 y = y.cuda()
+                y_mask = y_mask.cuda()
             optimizer.zero_grad()
             y_pred = model(x, x_len, y, y_len)
             # compute loss now: can also used masked_select here,
