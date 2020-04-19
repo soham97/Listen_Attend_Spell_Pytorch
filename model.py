@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 import torch.nn.functional as F
+import random
 from utils import *
 
 class Encoder(nn.Module):
@@ -81,6 +82,7 @@ class Decoder(nn.Module):
         self.is_stochastic = args.is_stochastic #True
         self.max_decoding_length = args.max_decoding_length #75
         self.cuda = cuda
+        self.tf = args.tf
 
         # Embedding layer
         self.embed = nn.Embedding(num_embeddings=output_size, embedding_dim=self.hidden_size)
@@ -136,7 +138,12 @@ class Decoder(nn.Module):
 
         # list hidden_states contains [(h_x, c_x) at t = 0, (h_x, c_x) at t = 1, ......]
         for i in range(label_len.max() - 1):
-            h = embed[:, i, :] # (bs, 256) --> considering particular indexed embedding
+            teacher_forcing = False if random.random() > self.tf else True
+            if teacher_forcing and i != 0:
+                value, index = torch.max(h, dim = 1)
+                h = self.embed(index)
+            else:
+                h = embed[:, i, :] # (bs, 256) --> considering particular indexed embedding
             h = torch.cat((h, context), dim = 1)
             for j,lstm in enumerate(self.lstm_cells):
                 if i == 0:

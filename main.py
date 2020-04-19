@@ -21,7 +21,7 @@ if __name__ == '__main__':
         python3 main.py -data_dir data -hidden_dim 256  -embed_dim 40 -batch_size 32\
             -epochs 50 -lr 0.001 -clip_value 0.0 -w_decay 0.0 -max_decoding_length 300 \
             -is_stochastic 1 -train 0 -models_dir models -logs_dir logs -model_path best.pth \
-            -num_workers 64
+            -num_workers 64 -tf 0.1
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("-data_dir", "--data_dir", type=str, default="")
@@ -39,6 +39,7 @@ if __name__ == '__main__':
     parser.add_argument("-logs_dir", "--logs_dir", type=str, default='logs')
     parser.add_argument("-model_path", "--model_path", type=str, default='best.pth')
     parser.add_argument("-num_workers", "--num_workers", type=int, default=64)
+    parser.add_argument("-tf", "--tf", type=float, default=0.1)
     args = parser.parse_args()
 
     for s in [args.model_dir, args.logs_dir]:
