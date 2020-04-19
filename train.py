@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch
 from utils import *
 from Levenshtein import distance as levenshtein_distance
+import logging
 
 def get_distance(DataLoaderContainer, y_pred, y):
     y_greedy = torch.max(y_pred, dim=1)[1]
@@ -31,7 +32,9 @@ def get_tf(args, epoch):
         new_tf =  args.tf + 0.6 #this is 0.9
     return new_tf
 
-def train(args, logging, cuda):
+def train(args, cuda):
+    create_logging(args.logs_dir, filemode = 'w')   
+    logging.info('logging started for model = {}'.format(args.model_path))
     DataLoaderContainer = WSJ_DataLoader(args, cuda)
 
     vocab_len = len(DataLoaderContainer.index_to_char)

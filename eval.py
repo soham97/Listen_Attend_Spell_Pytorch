@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch
 from tqdm import tqdm
 
-def eval(args, logging, cuda):
+def eval(args, cuda):
     model_path = os.path.join(args.model_dir, args.model_path)
     DataLoaderContainer = WSJ_DataLoader(args, cuda)
     vocab_len = len(DataLoaderContainer.index_to_char)

@@ -45,14 +45,12 @@ if __name__ == '__main__':
     for s in [args.model_dir, args.logs_dir]:
         create_folder(args.model_dir) 
     cuda = torch.cuda.is_available()
-    create_logging(args.logs_dir, filemode = 'w')   
-    logging.info('logging started for model = {}'.format(args.model_path))
 
     if args.train == 1:
-        model = train(args, logging, cuda)
+        model = train(args, cuda)
     elif args.train == 0:
         print('Evaluation started .......')
-        eval(args, logging, cuda)
+        eval(args, cuda)
         # TODO Inference pipeline and prediction saving
 
 
