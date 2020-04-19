@@ -82,7 +82,6 @@ class Decoder(nn.Module):
         self.is_stochastic = args.is_stochastic #True
         self.max_decoding_length = args.max_decoding_length #75
         self.cuda = cuda
-        self.tf = args.tf
 
         # Embedding layer
         self.embed = nn.Embedding(num_embeddings=output_size, embedding_dim=self.hidden_size)
@@ -103,7 +102,7 @@ class Decoder(nn.Module):
         # Tying weights of last layer and embedding layer
         # self.pl2.weight = self.embed.weight
 
-    def forward(self, keys, values, label, label_len, input_len):
+    def forward(self, keys, values, label, label_len, input_len, tf):
         # convert label to d dimensional vector
         embed = self.embed(label) # bs, label_len, 256
         output = None
@@ -138,7 +137,7 @@ class Decoder(nn.Module):
 
         # list hidden_states contains [(h_x, c_x) at t = 0, (h_x, c_x) at t = 1, ......]
         for i in range(label_len.max() - 1):
-            teacher_forcing = False if random.random() > self.tf else True
+            teacher_forcing = False if random.random() > tf else True
             if teacher_forcing and i != 0:
                 value, index = torch.max(h, dim = 1)
                 h = self.embed(index)
@@ -259,7 +258,7 @@ class LAS(nn.Module):
         self.apply(init_weights)
         print('Layers initialised')
 
-    def forward(self, input, input_len, label=None, label_len=None):
+    def forward(self, input, input_len, label=None, label_len=None, tf = None):
         input = input.permute(1, 0, 2)
         keys, values = self.encoder(input, input_len)
         if label is None:
@@ -267,7 +266,7 @@ class LAS(nn.Module):
             return self.decoder.decode(keys, values, self.args)
         else:
             # During training
-            return self.decoder(keys, values, label, label_len, input_len)
+            return self.decoder(keys, values, label, label_len, input_len, tf)
 
 if __name__ == "__main__":
     print('Testing starts here: ')

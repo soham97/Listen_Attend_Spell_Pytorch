@@ -14,6 +14,23 @@ def get_distance(DataLoaderContainer, y_pred, y):
     y_true_char = ''.join([DataLoaderContainer.index_to_char[idx] for idx in y.detach().cpu()])
     return levenshtein_distance(y_pred_char, y_true_char)
 
+def get_tf(args, epoch):
+    if epoch >= 0 and epoch < 15:
+        new_tf =  args.tf #this is 0.3
+    if epoch >= 15 and epoch < 30: 
+         new_tf =  args.tf + 0.1 #this is 0.4
+    if epoch >= 30 and epoch < 45:
+        new_tf =  args.tf + 0.2 #this is 0.5
+    if epoch >= 45 and epoch < 60:
+        new_tf =  args.tf + 0.3 #this is 0.6
+    if epoch >= 60 and epoch < 75:
+        new_tf =  args.tf + 0.4 #this is 0.7
+    if epoch >= 75 and epoch < 90:
+        new_tf =  args.tf + 0.5 #this is 0.8
+    if epoch >= 90 and epoch < 105:
+        new_tf =  args.tf + 0.6 #this is 0.9
+    return new_tf
+
 def train(args, logging, cuda):
     DataLoaderContainer = WSJ_DataLoader(args, cuda)
 
@@ -25,24 +42,26 @@ def train(args, logging, cuda):
     model_path = os.path.join(args.model_dir, args.model_path)
     criterian = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.w_decay)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 4, verbose = True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 5, verbose = True)
     print('Data loading compelete .......')
 
     print('Training started .......')
     best_val_loss = np.inf
+    tf = args.tf
     for epoch in range(args.epochs):
         train_loss_samples = []
         val_loss_samples = []
         train_dist = []
         val_dist = []
         model.train()
+        tf = get_tf(args, epoch) # get tf value by epoch
         for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.train_dataloader):
             if cuda:
                 x = x.cuda()
                 y = y.cuda()
                 y_mask = y_mask.cuda()
             optimizer.zero_grad()
-            y_pred = model(x, x_len, y, y_len)
+            y_pred = model(x, x_len, y, y_len, tf = tf)
             # compute loss now: can also used masked_select here,
             # but instead going with nonzero(), just a random choice
             y_mask = y_mask[:, 1:].contiguous().view(-1).nonzero().squeeze()
@@ -67,7 +86,7 @@ def train(args, logging, cuda):
                 x = x.cuda()
                 y = y.cuda()
                 y_mask = y_mask.cuda()
-            y_pred = model(x, x_len, y, y_len)
+            y_pred = model(x, x_len, y, y_len, tf = tf)
             y_mask = y_mask[:, 1:].contiguous().view(-1).nonzero().squeeze()
             y_pred = torch.index_select(y_pred.contiguous().view(-1, vocab_len),\
                 dim = 0, index = y_mask)
@@ -81,11 +100,14 @@ def train(args, logging, cuda):
         val_loss = np.mean(val_loss_samples)
         train_dist = np.mean(train_dist)
         val_dist = np.mean(val_dist)
-        scheduler.step(val_dist)
+        # scheduler.step(val_dist)
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             save_model(epoch, model, optimizer, scheduler, model_path)
+        
+        if epoch%15 == 0:
+            save_model(epoch, model, optimizer, scheduler, os.path.join(args.model_dir, f'epoch_{str(epoch)}.pth'))
 
         # logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), train_dist, val_loss, np.exp(val_loss), val_dist))
         logging.info('epoch: {}, train_loss: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, train_dist, val_loss, val_dist))
