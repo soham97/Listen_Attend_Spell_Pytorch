@@ -25,7 +25,7 @@ def train(args, logging, cuda):
     model_path = os.path.join(args.model_dir, args.model_path)
     criterian = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.w_decay)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 3, verbose = True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 4, verbose = True)
     print('Data loading compelete .......')
 
     print('Training started .......')
