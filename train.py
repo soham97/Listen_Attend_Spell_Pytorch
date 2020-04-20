@@ -69,6 +69,7 @@ def train(args, cuda):
             loss = criterian(y_pred, y) # no batch_size so using sum, then / by bs
             loss = loss/args.batch_size
             loss.backward()
+            torch.nn.utils.clip_grad_norm(model.parameters(), 2)
             optimizer.step()
             train_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
 
