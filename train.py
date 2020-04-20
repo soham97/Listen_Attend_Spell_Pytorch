@@ -103,7 +103,7 @@ def train(args, cuda):
             best_val_loss = val_loss
             save_model(epoch, model, optimizer, scheduler, model_path)
         
-        if epoch%15 == 0:
+        if epoch%14 == 0:
             save_model(epoch, model, optimizer, scheduler, os.path.join(args.model_dir, f'epoch_{str(epoch)}.pth'))
 
         # logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), train_dist, val_loss, np.exp(val_loss), val_dist))
