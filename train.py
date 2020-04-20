@@ -22,14 +22,8 @@ def get_tf(args, epoch):
          new_tf =  args.tf + 0.1 #this is 0.4
     if epoch >= 30 and epoch < 45:
         new_tf =  args.tf + 0.2 #this is 0.5
-    if epoch >= 45 and epoch < 60:
-        new_tf =  args.tf + 0.3 #this is 0.6
-    if epoch >= 60 and epoch < 75:
-        new_tf =  args.tf + 0.4 #this is 0.7
-    if epoch >= 75 and epoch < 90:
-        new_tf =  args.tf + 0.5 #this is 0.8
-    if epoch >= 90 and epoch < 105:
-        new_tf =  args.tf + 0.6 #this is 0.9
+    if epoch >= 45:
+        new_tf = 0.5
     return new_tf
 
 def train(args, cuda):
