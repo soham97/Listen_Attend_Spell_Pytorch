@@ -121,7 +121,8 @@ def continue_train(args, cuda):
     max_input_len = DataLoaderContainer.max_input_len
     model = LAS(args, vocab_len, max_input_len, cuda)
     load_model_path = os.path.join(args.model_dir, 'best.pth')
-    model = load_model(load_model_path,cuda)
+    checkpoint = load_model(load_model_path,cuda)
+    model.load_state_dict(checkpoint['model'])
     if cuda:
         model = model.cuda()
     model_path = os.path.join(args.model_dir, args.model_path)
