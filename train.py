@@ -110,6 +110,93 @@ def train(args, cuda):
         # logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), train_dist, val_loss, np.exp(val_loss), val_dist))
         logging.info('epoch: {}, train_loss: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, train_dist, val_loss, val_dist))
     
+    return model
+
+def continue_train(args, cuda):
+    create_logging(args.logs_dir, filemode = 'w')   
+    logging.info('logging started for model = {}'.format(args.model_path))
+    DataLoaderContainer = WSJ_DataLoader(args, cuda)
+
+    vocab_len = len(DataLoaderContainer.index_to_char)
+    max_input_len = DataLoaderContainer.max_input_len
+    model = LAS(args, vocab_len, max_input_len, cuda)
+    load_model_path = os.path.join(args.model_dir, 'best.pth')
+    model = load_model(load_model_path,cuda)
+    if cuda:
+        model = model.cuda()
+    model_path = os.path.join(args.model_dir, args.model_path)
+    criterian = nn.CrossEntropyLoss(reduction='sum')
+    optimizer = torch.optim.ASGD(model.parameters(), lr=args.lr, weight_decay=args.w_decay)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 5, verbose = True)
+    print('Data loading compelete .......')
+
+    print('Training started .......')
+    best_val_loss = np.inf
+    tf = args.tf
+    for epoch in range(args.epochs):
+        train_loss_samples = []
+        val_loss_samples = []
+        train_dist = []
+        val_dist = []
+        model.train()
+        tf = get_tf(args, epoch) # get tf value by epoch
+        for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.train_dataloader):
+            if cuda:
+                x = x.cuda()
+                y = y.cuda()
+                y_mask = y_mask.cuda()
+            optimizer.zero_grad()
+            y_pred = model(x, x_len, y, y_len, tf = tf)
+            # compute loss now: can also used masked_select here,
+            # but instead going with nonzero(), just a random choice
+            y_mask = y_mask[:, 1:].contiguous().view(-1).nonzero().squeeze()
+            y_pred = torch.index_select(y_pred.contiguous().view(-1, vocab_len),\
+                dim = 0, index = y_mask)
+            y = torch.index_select(y[:, 1:].contiguous().view(-1), dim=0, index=y_mask)
+
+            loss = criterian(y_pred, y) # no batch_size so using sum, then / by bs
+            loss = loss/args.batch_size
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
+            optimizer.step()
+            train_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
+
+            if args.clip_value > 0:
+                # Clip gradients
+                torch.nn.utils.clip_grad_norm(model.parameters(), args.clip_value)
+            train_loss_samples.append(loss.data.cpu().numpy())
+        
+        model.eval()
+        for (x, x_len, y, y_len, y_mask) in DataLoaderContainer.val_dataloader:
+            if cuda:
+                x = x.cuda()
+                y = y.cuda()
+                y_mask = y_mask.cuda()
+            y_pred = model(x, x_len, y, y_len, tf = tf)
+            y_mask = y_mask[:, 1:].contiguous().view(-1).nonzero().squeeze()
+            y_pred = torch.index_select(y_pred.contiguous().view(-1, vocab_len),\
+                dim = 0, index = y_mask)
+            y = torch.index_select(y[:, 1:].contiguous().view(-1), dim=0, index=y_mask)
+            loss = criterian(y_pred, y)
+            loss = loss/args.batch_size
+            val_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
+            val_loss_samples.append(loss.data.cpu().numpy())
+        
+        train_loss = np.mean(train_loss_samples)
+        val_loss = np.mean(val_loss_samples)
+        train_dist = np.mean(train_dist)
+        val_dist = np.mean(val_dist)
+        # scheduler.step(val_dist)
+
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            save_model(epoch, model, optimizer, scheduler, model_path)
+        
+        if epoch%14 == 0:
+            save_model(epoch, model, optimizer, scheduler, os.path.join(args.model_dir, f'epoch_{str(epoch)}.pth'))
+
+        # logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), train_dist, val_loss, np.exp(val_loss), val_dist))
+        logging.info('epoch: {}, train_loss: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, train_dist, val_loss, val_dist))
     
     return model
 

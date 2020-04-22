@@ -6,7 +6,7 @@ from utils import *
 from dataloader import *
 import argparse
 import logging
-from train import train
+from train import train, continue_train
 from eval import eval
 
 if __name__ == '__main__':
@@ -52,6 +52,9 @@ if __name__ == '__main__':
         print('Evaluation started .......')
         eval(args, cuda)
         # TODO Inference pipeline and prediction saving
+    elif args.train == 2:
+        print(' Loading pretrained model and training ......')
+        continue_train(args, cuda)
 
 
 
