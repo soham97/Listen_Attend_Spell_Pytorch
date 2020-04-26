@@ -25,12 +25,12 @@ class Encoder(nn.Module):
         embedding_dim = args.embed_dim #40
         self.lstm_layers = nn.ModuleList([
             nn.LSTM(input_size=embedding_dim, hidden_size=hidden_size, bidirectional=True),
-            nn.LSTM(input_size=hidden_size, hidden_size=hidden_size, bidirectional=True),
-            nn.LSTM(input_size=hidden_size, hidden_size=hidden_size, bidirectional=True),
-            nn.LSTM(input_size=hidden_size, hidden_size=hidden_size, bidirectional=True)])
+            nn.LSTM(input_size=2*2*hidden_size, hidden_size=hidden_size, bidirectional=True),
+            nn.LSTM(input_size=2*2*hidden_size, hidden_size=hidden_size, bidirectional=True),
+            nn.LSTM(input_size=2*2*hidden_size, hidden_size=hidden_size, bidirectional=True)])
         
-        self.keys = nn.Linear(in_features = hidden_size, out_features = hidden_size)
-        self.values = nn.Linear(in_features = hidden_size, out_features = hidden_size)
+        self.keys = nn.Linear(in_features = 2*hidden_size, out_features = 2*hidden_size)
+        self.values = nn.Linear(in_features = 2*hidden_size, out_features = 2*hidden_size)
 
     
     def forward(self, x, x_len):
@@ -46,7 +46,8 @@ class Encoder(nn.Module):
                 if seq_len % 2 == 0:
                     h = h.permute(1,0,2).contiguous()
                     # h = (h_f + h_b) / 2
-                    h = h.view(h.size(0), h.size(1) // 2, 2, h.size(2)).sum(2)/ 2
+                    # h = h.view(h.size(0), h.size(1) // 2, 2, h.size(2)).sum(2)/ 2
+                    h = h.view(h.size(0), h.size(1) // 2, h.size(2)*2)
                     h = h.permute(1,0,2).contiguous()
                     x_len /= 2
                 else:
@@ -57,7 +58,7 @@ class Encoder(nn.Module):
             h, _ = lstm(packed_h)
             h, _ = pad_packed_sequence(h)      # seq_len * bs * (2 * hidden_dim)
             # Summing forward and backward representation ie h = (h_f + h_b) / 2
-            h = h.view(h.size(0), h.size(1), 2, -1).sum(2) / 2       
+            # h = h.view(h.size(0), h.size(1), 2, -1).sum(2) / 2 
         
         # both keys and values are of shape (bs, seq_len/8, 256)
         keys = self.keys(h)
@@ -77,7 +78,7 @@ class CustomLSTMCell(nn.LSTMCell):
 class Decoder(nn.Module):
     def __init__(self, args, output_size, cuda):
         super(Decoder, self).__init__()
-        self.hidden_size = args.hidden_dim #32
+        self.hidden_size = 2*args.hidden_dim #32
         self.embedding_dim = args.embed_dim #100
         self.is_stochastic = args.is_stochastic #True
         self.max_decoding_length = args.max_decoding_length #75
