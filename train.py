@@ -69,13 +69,11 @@ def train(args, cuda):
             loss = criterian(y_pred, y) # no batch_size so using sum, then / by bs
             loss = loss/args.batch_size
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
-            optimizer.step()
-            train_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
-
             if args.clip_value > 0:
                 # Clip gradients
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
+            optimizer.step()
+            train_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
             train_loss_samples.append(loss.data.cpu().numpy())
         
         model.eval()
@@ -158,13 +156,11 @@ def continue_train(args, cuda):
             loss = criterian(y_pred, y) # no batch_size so using sum, then / by bs
             loss = loss/args.batch_size
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
-            optimizer.step()
-            train_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
-
             if args.clip_value > 0:
                 # Clip gradients
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
+            optimizer.step()
+            train_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
             train_loss_samples.append(loss.data.cpu().numpy())
         
         model.eval()
