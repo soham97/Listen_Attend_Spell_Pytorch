@@ -75,7 +75,7 @@ def train(args, cuda):
 
             if args.clip_value > 0:
                 # Clip gradients
-                torch.nn.utils.clip_grad_norm(model.parameters(), args.clip_value)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
             train_loss_samples.append(loss.data.cpu().numpy())
         
         model.eval()
@@ -164,7 +164,7 @@ def continue_train(args, cuda):
 
             if args.clip_value > 0:
                 # Clip gradients
-                torch.nn.utils.clip_grad_norm(model.parameters(), args.clip_value)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
             train_loss_samples.append(loss.data.cpu().numpy())
         
         model.eval()
