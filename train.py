@@ -70,7 +70,7 @@ def train(args, cuda):
             loss = criterian(y_pred, y) # no batch_size so using sum, then / by bs
             loss = loss/args.batch_size
             if batch % 100 == 0:
-                print(f'Batch: {str(batch)}, loss: {str(loss)}')
+                print(f'Batch: {str(batch)}, loss: {str(loss.cpu().item())}')
             loss.backward()
             if args.clip_value > 0:
                 # Clip gradients
