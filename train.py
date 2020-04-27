@@ -15,16 +15,16 @@ def get_distance(DataLoaderContainer, y_pred, y):
     y_true_char = ''.join([DataLoaderContainer.index_to_char[idx] for idx in y.detach().cpu()])
     return levenshtein_distance(y_pred_char, y_true_char)
 
-def get_tf(args, epoch, model_path):
-    if epoch >= 0 and epoch < 15:
-        new_tf =  args.tf #this is 0.3
-    if epoch >= 15 and epoch < 30: 
-         new_tf =  args.tf + 0.1 #this is 0.4
-    # if epoch >= 30 and epoch < 45:
-    #     new_tf =  args.tf + 0.2 #this is 0.5
-    if epoch >= 30:
-        new_tf = 0.4
-    return new_tf
+# def get_tf(args, epoch, model_path):
+#     if epoch >= 0 and epoch < 15:
+#         new_tf =  args.tf #this is 0.3
+#     if epoch >= 15 and epoch < 30: 
+#          new_tf =  args.tf + 0.1 #this is 0.4
+#     # if epoch >= 30 and epoch < 45:
+#     #     new_tf =  args.tf + 0.2 #this is 0.5
+#     if epoch >= 30:
+#         new_tf = 0.4
+#     return new_tf
 
 def train(args, cuda):
     create_logging(args.logs_dir, filemode = 'w')   
@@ -43,8 +43,9 @@ def train(args, cuda):
     print('Data loading compelete .......')
 
     print('Training started .......')
-    best_val_loss_03 = np.inf
-    best_val_loss_04 = np.inf
+    # best_val_loss_03 = np.inf
+    # best_val_loss_04 = np.inf
+    best_val_loss = np.inf
     tf = args.tf
     for epoch in range(args.epochs):
         train_loss_samples = []
@@ -52,7 +53,7 @@ def train(args, cuda):
         train_dist = []
         val_dist = []
         model.train()
-        tf = get_tf(args, epoch, model_path) # get tf value by epoch
+        # tf = get_tf(args, epoch, model_path) # get tf value by epoch
         for batch,(x, x_len, y, y_len, y_mask) in enumerate(DataLoaderContainer.train_dataloader):
             if cuda:
                 x = x.cuda()
@@ -101,14 +102,19 @@ def train(args, cuda):
         val_dist = np.mean(val_dist)
         # scheduler.step(val_dist)
 
-        if tf == 0.3:
-            if val_loss < best_val_loss_03:
-                best_val_loss_03 = val_loss
-                save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
-        elif tf ==0.4:
-            if val_loss < best_val_loss_04:
-                best_val_loss_04 = val_loss
-                save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
+        # if tf == 0.3:
+        #     if val_loss < best_val_loss_03:
+        #         best_val_loss_03 = val_loss
+        #         save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
+        # elif tf ==0.4:
+        #     if val_loss < best_val_loss_04:
+        #         best_val_loss_04 = val_loss
+        #         save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
+        
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            save_model(epoch, model, optimizer, scheduler, model_path)
+            print('Model saved!')
         
         if epoch%14 == 0:
             save_model(epoch, model, optimizer, scheduler, os.path.join(args.model_dir, f'epoch_{str(epoch)}.pth'))
