@@ -306,5 +306,3 @@ if __name__ == "__main__":
         torch.ones(batch_size,seq_len_padded).long(), \
         8*torch.ones(batch_size).int())
     print('Total model check complete')
-                
-
