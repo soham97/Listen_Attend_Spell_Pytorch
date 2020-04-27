@@ -53,7 +53,7 @@ def train(args, cuda):
         val_dist = []
         model.train()
         tf = get_tf(args, epoch, model_path) # get tf value by epoch
-        for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.train_dataloader):
+        for (x, x_len, y, y_len, y_mask) in DataLoaderContainer.train_dataloader:
             if cuda:
                 x = x.cuda()
                 y = y.cuda()
