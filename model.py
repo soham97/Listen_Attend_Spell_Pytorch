@@ -92,6 +92,11 @@ class Decoder(nn.Module):
             CustomLSTMCell(input_size=2 * self.hidden_size, hidden_size=2 * self.hidden_size),
             CustomLSTMCell(input_size=2 * self.hidden_size, hidden_size=self.hidden_size)
         ])
+        self.locked_dropouts = nn.ModuleList([
+            LockedDropout(dropout = args.locked_dropout),
+            LockedDropout(dropout = args.locked_dropout),
+            LockedDropout(dropout = args.locked_dropout)
+        ])
         # Attention
         self.linear = nn.Linear(in_features=self.hidden_size, out_features=self.hidden_size)
         
@@ -146,6 +151,7 @@ class Decoder(nn.Module):
                 h = embed[:, i, :] # (bs, 256) --> considering particular indexed embedding
             h = torch.cat((h, context), dim = 1)
             for j,lstm in enumerate(self.lstm_cells):
+                h = self.locked_dropouts[j](h.unsqueeze(1)).squeeze(1)
                 if i == 0:
                     h_x_0, c_x_0 = lstm(h, lstm.h0.expand(embed.size(0), -1).contiguous(), \
                                         lstm.c0.expand(embed.size(0), -1).contiguous())

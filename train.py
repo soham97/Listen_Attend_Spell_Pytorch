@@ -15,7 +15,7 @@ def get_distance(DataLoaderContainer, y_pred, y):
     y_true_char = ''.join([DataLoaderContainer.index_to_char[idx] for idx in y.detach().cpu()])
     return levenshtein_distance(y_pred_char, y_true_char)
 
-def get_tf(args, epoch):
+def get_tf(args, epoch, model_path):
     if epoch >= 0 and epoch < 15:
         new_tf =  args.tf #this is 0.3
     if epoch >= 15 and epoch < 30: 
@@ -51,7 +51,7 @@ def train(args, cuda):
         train_dist = []
         val_dist = []
         model.train()
-        tf = get_tf(args, epoch) # get tf value by epoch
+        tf = get_tf(args, epoch, model_path) # get tf value by epoch
         for (x, x_len, y, y_len, y_mask) in tqdm(DataLoaderContainer.train_dataloader):
             if cuda:
                 x = x.cuda()
