@@ -36,14 +36,15 @@ def train(args, cuda):
     model = LAS(args, vocab_len, max_input_len, cuda)
     if cuda:
         model = model.cuda()
-    model_path = os.path.join(args.model_dir, args.model_path)
+    model_path = os.path.join(args.model_dir, args.model_path.split('.')[0])
     criterian = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.w_decay)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 5, verbose = True)
     print('Data loading compelete .......')
 
     print('Training started .......')
-    best_val_loss = np.inf
+    best_val_loss_03 = np.inf
+    best_val_loss_04 = np.inf
     tf = args.tf
     for epoch in range(args.epochs):
         train_loss_samples = []
@@ -98,9 +99,14 @@ def train(args, cuda):
         val_dist = np.mean(val_dist)
         # scheduler.step(val_dist)
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            save_model(epoch, model, optimizer, scheduler, model_path)
+        if tf == 0.3:
+            if val_loss < best_val_loss_03:
+                best_val_loss_03 = val_loss
+                save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
+        elif tf ==0.4:
+            if val_loss < best_val_loss_04:
+                best_val_loss_04 = val_loss
+                save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
         
         if epoch%14 == 0:
             save_model(epoch, model, optimizer, scheduler, os.path.join(args.model_dir, f'epoch_{str(epoch)}.pth'))
