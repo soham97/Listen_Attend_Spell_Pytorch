@@ -171,8 +171,8 @@ class Decoder(nn.Module):
 
             # At this point, h is the embed from the 3 lstm cells. Passing it through the projection layers
             h = self.activation(self.pl1(h))
-            # h = self.logsm(self.pl2(h))
-            h = self.pl2(h)
+            h = self.logsm(self.pl2(h))
+            # h = self.pl2(h)
             # Accumulating the output at each timestep
             if output is None:
                 output = h.unsqueeze(1)
@@ -231,7 +231,7 @@ class Decoder(nn.Module):
                 # At this point, h is the embed from the 3 lstm cells. Passing it through the projection layers
                 h = self.activation(self.pl1(h))
                 h = self.pl2(h)
-                # lsm = self.logsm(h)
+                lsm = self.logsm(h)
                 if self.is_stochastic > 0:
                     gumbel = torch.autograd.Variable(self.sample_gumbel(shape=h.size(), out=h.data.new()))
                     h += gumbel
