@@ -53,7 +53,7 @@ def train(args, cuda):
         val_dist = []
         model.train()
         tf = get_tf(args, epoch, model_path) # get tf value by epoch
-        for (x, x_len, y, y_len, y_mask) in DataLoaderContainer.train_dataloader:
+        for batch,(x, x_len, y, y_len, y_mask) in enumerate(DataLoaderContainer.train_dataloader):
             if cuda:
                 x = x.cuda()
                 y = y.cuda()
@@ -69,6 +69,8 @@ def train(args, cuda):
 
             loss = criterian(y_pred, y) # no batch_size so using sum, then / by bs
             loss = loss/args.batch_size
+            if batch % 100 == 0:
+                print(f'Batch: {str(batch)}, loss: {str(loss)}')
             loss.backward()
             if args.clip_value > 0:
                 # Clip gradients
@@ -161,8 +163,6 @@ def continue_train(args, cuda):
 
             loss = criterian(y_pred, y) # no batch_size so using sum, then / by bs
             loss = loss/args.batch_size
-            if batch % 100 == 0:
-                print(f'Batch: {str(batch)}, loss: {str(loss)}')
 
             loss.backward()
             if args.clip_value > 0:
