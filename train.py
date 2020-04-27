@@ -164,6 +164,7 @@ def continue_train(args, cuda):
 
             if batch % 100 == 0:
                 print(f'Batch: {str(batch)}, loss: {str(loss)}')
+            # changes not getting registered
             loss.backward()
             if args.clip_value > 0:
                 # Clip gradients
