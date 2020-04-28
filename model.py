@@ -200,7 +200,7 @@ class Decoder(nn.Module):
         output = []
         raw_preds = []
 
-        for _ in range(100):
+        for _ in range(2):
             hidden_states = []
             raw_pred = None
             raw_out = []
@@ -235,9 +235,9 @@ class Decoder(nn.Module):
                 h = self.pl2(h)
                 # lsm = self.logsm(h)
                 lsm = h
-                # if self.is_stochastic > 0:
-                #     gumbel = torch.autograd.Variable(self.sample_gumbel(shape=h.size(), out=h.data.new()))
-                #     h += gumbel
+                if self.is_stochastic > 0:
+                    gumbel = torch.autograd.Variable(self.sample_gumbel(shape=h.size(), out=h.data.new()))
+                    h += gumbel
                 # TODO: Do beam search later
 
                 h = torch.max(h, dim=1)[1]

@@ -32,9 +32,7 @@ def load_model(path_model, cuda):
         return torch.load(path_model, map_location=torch.device('cpu'))
 
 def to_variable(tensor, requires_grad=False):
-    # Tensor -> Variable (on GPU if possible)
     if torch.cuda.is_available():
-        # Tensor -> GPU Tensor
         tensor = tensor.cuda()
     return torch.autograd.Variable(tensor, requires_grad=requires_grad)
 

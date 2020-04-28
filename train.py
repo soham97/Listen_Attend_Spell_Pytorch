@@ -139,7 +139,7 @@ def continue_train(args, cuda):
         model = model.cuda()
     model_path = os.path.join(args.model_dir, args.model_path)
     criterian = nn.CrossEntropyLoss(reduction='sum')
-    optimizer = torch.optim.ASGD(model.parameters(), lr=args.lr, weight_decay=args.w_decay)
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 5, verbose = True)
     print('Data loading compelete .......')
 
@@ -152,7 +152,6 @@ def continue_train(args, cuda):
         train_dist = []
         val_dist = []
         model.train()
-        tf = get_tf(args, epoch) # get tf value by epoch
         for batch, (x, x_len, y, y_len, y_mask) in enumerate(DataLoaderContainer.train_dataloader):
             if cuda:
                 x = x.cuda()
@@ -171,6 +170,8 @@ def continue_train(args, cuda):
             loss = loss/args.batch_size
 
             loss.backward()
+            if batch % 100 == 0:
+                print(f'Batch: {str(batch)}, loss: {str(loss.cpu().item())}')
             if args.clip_value > 0:
                 # Clip gradients
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)

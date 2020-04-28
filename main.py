@@ -52,7 +52,6 @@ if __name__ == '__main__':
     elif args.train == 0:
         print('Evaluation started .......')
         eval(args, cuda)
-        # TODO Inference pipeline and prediction saving
     elif args.train == 2:
         print(' Loading pretrained model and training ......')
         continue_train(args, cuda)
