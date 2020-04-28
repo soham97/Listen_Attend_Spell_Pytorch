@@ -36,7 +36,8 @@ def train(args, cuda):
     model = LAS(args, vocab_len, max_input_len, cuda)
     if cuda:
         model = model.cuda()
-    model_path = os.path.join(args.model_dir, args.model_path.split('.')[0])
+    # model_path = os.path.join(args.model_dir, args.model_path.split('.')[0])
+    model_path = os.path.join(args.model_dir, args.model_path)
     criterian = nn.CrossEntropyLoss(reduction='sum')
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.w_decay)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience = 5, verbose = True)
