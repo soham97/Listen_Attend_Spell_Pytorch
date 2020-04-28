@@ -46,7 +46,7 @@ def train(args, cuda):
     print('Training started .......')
     # best_val_loss_03 = np.inf
     # best_val_loss_04 = np.inf
-    best_val_loss = np.inf
+    best_val_dist = np.inf
     tf = args.tf
     for epoch in range(args.epochs):
         train_loss_samples = []
@@ -112,8 +112,8 @@ def train(args, cuda):
         #         best_val_loss_04 = val_loss
         #         save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
         
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
+        if val_dist < best_val_dist:
+            best_val_dist = val_dist
             save_model(epoch, model, optimizer, scheduler, model_path)
             print('Model saved!')
         

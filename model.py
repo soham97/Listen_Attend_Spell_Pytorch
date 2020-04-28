@@ -200,7 +200,7 @@ class Decoder(nn.Module):
         output = []
         raw_preds = []
 
-        for _ in range(50):
+        for _ in range(10):
             hidden_states = []
             raw_pred = None
             raw_out = []
