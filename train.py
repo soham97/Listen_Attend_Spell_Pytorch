@@ -87,6 +87,7 @@ def train(args, cuda):
                 x = x.cuda()
                 y = y.cuda()
                 y_mask = y_mask.cuda()
+            optimizer.zero_grad()
             y_pred = model(x, x_len, y, y_len, tf = tf)
             y_mask = y_mask[:, 1:].contiguous().view(-1).nonzero().squeeze()
             y_pred = torch.index_select(y_pred.contiguous().view(-1, vocab_len),\
