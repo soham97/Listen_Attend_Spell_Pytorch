@@ -234,6 +234,7 @@ class Decoder(nn.Module):
                 h = self.activation(self.pl1(h))
                 h = self.pl2(h)
                 # lsm = self.logsm(h)
+                h = torch.sigmoid(h)
                 lsm = h
                 # if self.is_stochastic > 0:
                 #     gumbel = torch.autograd.Variable(self.sample_gumbel(shape=h.size(), out=h.data.new()))
