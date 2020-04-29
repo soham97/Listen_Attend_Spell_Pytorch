@@ -46,7 +46,7 @@ def train(args, cuda):
     print('Training started .......')
     # best_val_loss_03 = np.inf
     # best_val_loss_04 = np.inf
-    best_val_dist = np.inf
+    best_total_dist = np.inf
     tf = args.tf
     for epoch in range(args.epochs):
         train_loss_samples = []
@@ -81,8 +81,8 @@ def train(args, cuda):
             train_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
             train_loss_samples.append(loss.data.cpu().numpy())
         
-        model.eval()
-        for (x, x_len, y, y_len, y_mask) in DataLoaderContainer.val_dataloader:
+        # model.eval()
+        for batch, (x, x_len, y, y_len, y_mask) in enumerate(DataLoaderContainer.val_dataloader):
             if cuda:
                 x = x.cuda()
                 y = y.cuda()
@@ -94,6 +94,13 @@ def train(args, cuda):
             y = torch.index_select(y[:, 1:].contiguous().view(-1), dim=0, index=y_mask)
             loss = criterian(y_pred, y)
             loss = loss/args.batch_size
+            loss.backward()
+            if batch % 100 == 0:
+                print(f'Batch: {str(batch)}, loss: {str(loss.cpu().item())}')
+            if args.clip_value > 0:
+                # Clip gradients
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
+            optimizer.step()
             val_dist.append(get_distance(DataLoaderContainer, y_pred, y)/args.batch_size)
             val_loss_samples.append(loss.data.cpu().numpy())
         
@@ -101,26 +108,17 @@ def train(args, cuda):
         val_loss = np.mean(val_loss_samples)
         train_dist = np.mean(train_dist)
         val_dist = np.mean(val_dist)
-        # scheduler.step(val_dist)
 
-        # if tf == 0.3:
-        #     if val_loss < best_val_loss_03:
-        #         best_val_loss_03 = val_loss
-        #         save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
-        # elif tf ==0.4:
-        #     if val_loss < best_val_loss_04:
-        #         best_val_loss_04 = val_loss
-        #         save_model(epoch, model, optimizer, scheduler, model_path + '_' +str(tf)+'_.pth')
+        total_dist = train_dist + val_dist
         
-        if val_dist < best_val_dist:
-            best_val_dist = val_dist
+        if total_dist < best_total_dist:
+            best_total_dist = total_dist
             save_model(epoch, model, optimizer, scheduler, model_path)
             print('Model saved!')
         
         if epoch%14 == 0:
             save_model(epoch, model, optimizer, scheduler, os.path.join(args.model_dir, f'epoch_{str(epoch)}.pth'))
 
-        # logging.info('epoch: {}, train_loss: {:.3f}, train_perplexity: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_perplexity: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, np.exp(train_loss), train_dist, val_loss, np.exp(val_loss), val_dist))
         logging.info('epoch: {}, train_loss: {:.3f}, train_dist: {:.3f}, val_loss: {:.3f}, val_dist: {:.3f}'.format(epoch, train_loss, train_dist, val_loss, val_dist))
     
     return model
@@ -145,7 +143,7 @@ def continue_train(args, cuda):
     print('Data loading compelete .......')
 
     print('Training started .......')
-    best_val_loss = np.inf
+    best_val_dist = np.inf
     tf = args.tf
     for epoch in range(args.epochs):
         train_loss_samples = []
@@ -202,9 +200,10 @@ def continue_train(args, cuda):
         val_dist = np.mean(val_dist)
         # scheduler.step(val_dist)
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
+        if val_dist < best_val_dist:
+            best_val_dist = val_dist
             save_model(epoch, model, optimizer, scheduler, model_path)
+            print('Model saved!')
         
         if epoch%14 == 0:
             save_model(epoch, model, optimizer, scheduler, os.path.join(args.model_dir, f'epoch_{str(epoch)}.pth'))
