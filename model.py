@@ -64,9 +64,6 @@ class CustomLSTMCell(nn.LSTMCell):
             return super(CustomLSTMCell, self).forward(h, (hx, cx))
 
 class Encoder(nn.Module):
-    """
-    pBILSTM from paper: https://arxiv.org/pdf/1508.01211.pdf
-    """
     def __init__(self, args):
         super(Encoder, self).__init__()
         """
@@ -84,12 +81,12 @@ class Encoder(nn.Module):
             nn.LSTM(input_size=embedding_dim, hidden_size=hidden_size, bidirectional=True),
             nn.LSTM(input_size=2*2*hidden_size, hidden_size=hidden_size, bidirectional=True),
             nn.LSTM(input_size=2*2*hidden_size, hidden_size=hidden_size, bidirectional=True),
-            nn.LSTM(input_size=2*2*hidden_size, hidden_size=hidden_size, bidirectional=True)])
+            nn.LSTM(input_size=2*2*hidden_size, hidden_size=hidden_size, bidirectional=True)
+            ])
         
         self.keys = nn.Linear(in_features = 2*hidden_size, out_features = 2*hidden_size)
         self.values = nn.Linear(in_features = 2*hidden_size, out_features = 2*hidden_size)
 
-    
     def forward(self, x, x_len):
         """
         x shape: (seq_len, batch_size, mel_bins = 40)

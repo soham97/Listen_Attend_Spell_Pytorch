@@ -1,6 +1,5 @@
 import numpy as np
 from model import LAS
-from tqdm import tqdm
 import os
 import torch.nn as nn
 import torch
