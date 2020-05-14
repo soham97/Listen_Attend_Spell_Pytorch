@@ -1,4 +1,9 @@
 # Listen, Attend and Spell
+<p align="center">
+<img src="model.png" alt="theme"
+width="100%"/>
+</p>
+<br>
 This is my pytorch implementation of paper Listen, Attend and Spell (LAS) [1] which is a neural network that learns to transcribe speech utterances to characters. This implementation is used in this kaggle competition [here](https://www.kaggle.com/c/11-785-s20-hw4p2) and gets 11 levenshtein distance on leaderboard.
 
 # Requirements
