@@ -61,7 +61,7 @@ def eval_batch(model, DataLoaderContainer, optimizer, criterian, scheduler, args
             y = y.cuda()
             y_mask = y_mask.cuda()
 
-        y_pred = model(x, x_len, y, y_len, tf = tf)
+        y_pred = model(x, x_len, y, y_len, tf = args.tf)
         y_mask = y_mask[:, 1:].contiguous().view(-1).nonzero().squeeze()
         y_pred = torch.index_select(y_pred.contiguous().view(-1, vocab_len),\
             dim = 0, index = y_mask)
